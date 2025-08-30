@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -78,12 +78,12 @@
 
     #syncBanner {
       position: absolute;
-      bottom: 20%;
+      bottom: 15%;
       left: -100%;
       white-space: nowrap;
       z-index: 200;
       font-family: sans-serif;
-      font-size: 1em;
+      font-size: 3em;
       color: white;
       text-shadow: 1px 1px 3px red;
       padding: 10px;
@@ -170,8 +170,24 @@
       setTimeout(() => {
         const introText = document.getElementById('introText');
         if (introText) introText.style.display = 'none';
-        triggerDualExplosion(); // trigger explosion after intro fades
+        triggerDualExplosion();
       }, 10000);
+
+      // Sync Counter Animation
+      const syncText = document.getElementById('syncText');
+      let count = 0;
+      const target = 50000;
+      const duration = 15000;
+      const interval = duration / target;
+
+      const counterInterval = setInterval(() => {
+        count += 1;
+        if (count > target) {
+          clearInterval(counterInterval);
+          count = target;
+        }
+        syncText.textContent = `${count.toLocaleString()} SYNCS, THANK YOU BEAUTY LOVERS!`;
+      }, interval);
 
       // Explosion Stars Animation
       let particles = [];
@@ -207,7 +223,7 @@
 
       function drawParticles() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawMask(); // redraw mask behind particles
+        drawMask();
         particles.forEach(p => {
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
@@ -228,22 +244,4 @@
         updateParticles();
         drawParticles();
         requestAnimationFrame(animate);
-      }
-
-      function triggerDualExplosion() {
-        const x1 = Math.random() * canvas.width;
-        const y1 = Math.random() * canvas.height;
-        const x2 = canvas.width - x1;
-        const y2 = canvas.height - y1;
-
-        createExplosion(x1, y1);
-        setTimeout(() => {
-          createExplosion(x2, y2);
-        }, 1000);
-      }
-
-      animate(); // start animation loop
-    })();
-  </script>
-</body>
-</html>
+     
