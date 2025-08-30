@@ -13,11 +13,13 @@
       height: 100%;
       overflow: hidden;
     }
+
     #container {
       position: relative;
       width: 100%;
       height: 100%;
     }
+
     iframe {
       position: absolute;
       width: 105%;
@@ -30,9 +32,11 @@
       transform: translate(-50%, -50%) scale(1.95);
       visibility: hidden;
     }
+
     iframe.active {
       visibility: visible;
     }
+
     canvas {
       position: absolute;
       top: 0;
@@ -43,6 +47,7 @@
       pointer-events: none;
       background: transparent;
     }
+
     #introText {
       position: absolute;
       top: 50%;
@@ -59,6 +64,7 @@
       max-width: 400px;
       z-index: 100;
     }
+
     #logoImage {
       position: absolute;
       top: 50%;
@@ -68,6 +74,7 @@
       height: auto;
       z-index: 100;
     }
+
     #syncBanner {
       position: absolute;
       bottom: 20%;
@@ -83,6 +90,7 @@
       pointer-events: none;
       animation: bannerSlide 20s linear forwards;
     }
+
     @keyframes bannerSlide {
       from { left: -100%; }
       to   { left: 100%; }
@@ -101,7 +109,9 @@
     <p>FACES</p>
     <p>BC</p>
   </div>
+
   <img id="logoImage" src="0001.png" alt="Logo">
+
   <div id="container">
     <iframe class="active"
       src="https://www.facer.io/w/zs6pDpzmRW/showcase?prev=~2Fwatchface~2Fzs6pDpzmRW&watchModel=fossilqmarshal">
@@ -120,12 +130,13 @@
     </iframe>
     <canvas id="canvas"></canvas>
   </div>
+
   <div id="syncBanner">
     <span id="syncText">0</span>
   </div>
 
   <script>
-    // --- SETUP CANVAS & MASK ---
+    // Canvas & mask setup
     const canvas  = document.getElementById('canvas');
     const ctx     = canvas.getContext('2d');
     const maskImg = new Image();
@@ -136,83 +147,29 @@
       canvas.height = window.innerHeight;
     }
 
-    maskImg.onload = () => {
-      resizeCanvas();
-      drawFrame();               // start render loop
-      triggerDualExplosion();    // immediate first burst
-      setInterval(triggerDualExplosion, 20000);
-    };
-    window.addEventListener('resize', resizeCanvas);
-
     function drawMask() {
+      if (!maskImg.complete) return;
       const scale = Math.min(canvas.width / maskImg.width, canvas.height / maskImg.height) * 1.45;
       const w     = maskImg.width  * scale;
       const h     = maskImg.height * scale;
       const x     = (canvas.width  - w) / 2;
       const y     = (canvas.height - h) / 2;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.imageSmoothingEnabled = true;
       ctx.drawImage(maskImg, x, y, w, h);
     }
 
-    // --- PARTICLE SYSTEM ---
-    let particles = [];
-    function randomColor() {
-      const colors = ['#ff004f','#00f0ff','#fffc00','#00ff6a','#ff00c8','#ffffff','#ff0000'];
-      return colors[Math.floor(Math.random() * colors.length)];
-    }
-
-    function createExplosion(x, y) {
-      for (let i = 0; i < 400; i++) {
-        particles.push({
-          x, y,
-          radius: Math.random() * 3 + 2,
-          color: randomColor(),
-          angle: Math.random() * Math.PI * 2,
-          speed: Math.random() * 3 + 1,
-          alpha: 1,
-          fade: 0.005
-        });
-      }
-    }
-
-    function updateParticles() {
-      particles.forEach(p => {
-        p.x    += Math.cos(p.angle) * p.speed;
-        p.y    += Math.sin(p.angle) * p.speed;
-        p.alpha -= p.fade;
-      });
-      particles = particles.filter(p => p.alpha > 0);
-    }
-
-    function drawParticles() {
-      particles.forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
-        ctx.fillStyle = `rgba(${hexToRgb(p.color)},${p.alpha})`;
-        ctx.fill();
-      });
-    }
-
-    function hexToRgb(hex) {
-      const v = parseInt(hex.slice(1), 16);
-      return `${(v>>16)&255},${(v>>8)&255},${v&255}`;
-    }
-
-    // Continuous render loop
-    function drawFrame() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    maskImg.onload = () => {
+      resizeCanvas();
       drawMask();
-      updateParticles();
-      drawParticles();
-      requestAnimationFrame(drawFrame);
-    }
+    };
 
-    function triggerDualExplosion() {
-      createExplosion(Math.random() * canvas.width,  Math.random() * canvas.height);
-      createExplosion(Math.random() * canvas.width,  Math.random() * canvas.height);
-    }
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      drawMask();
+    });
 
-    // --- WATCH ROTATION ---
+    // Rotate watch faces every 20s
     const iframes = document.querySelectorAll('iframe');
     let current    = 0;
     setInterval(() => {
@@ -221,11 +178,12 @@
       iframes[current].classList.add('active');
     }, 20000);
 
-    // --- INTRO & COUNTER ---
+    // Hide intro after 10s
     setTimeout(() => {
       document.getElementById('introText').style.display = 'none';
     }, 10000);
 
+    // Counter to 50,000 in 10s
     const syncText  = document.getElementById('syncText');
     const startTime = Date.now();
     const duration  = 10000;
@@ -239,6 +197,7 @@
         `${count.toLocaleString()}${progress === 1 ? ' SYNCS, THANK YOU BEAUTY LOVERS!' : ''}`;
       if (progress < 1) requestAnimationFrame(updateCounter);
     }
+
     requestAnimationFrame(updateCounter);
   </script>
 </body>
