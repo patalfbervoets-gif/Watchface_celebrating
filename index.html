@@ -75,6 +75,21 @@
       height: auto;
       z-index: 100;
     }
+
+    #syncBanner {
+      position: absolute;
+      top: 10%;
+      left: -100%;
+      white-space: nowrap;
+      z-index: 200;
+      font-family: sans-serif;
+      font-size: 1em;
+      color: white;
+      text-shadow: 1px 1px 3px red;
+      padding: 10px;
+      background-color: transparent;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -99,6 +114,10 @@
     <iframe src="https://www.facer.io/w/RsnQzFDYgg/showcase?prev=~2Fwatchface~2FRsnQzFDYgg&watchModel=fossilqmarshal"></iframe>
     <iframe src="https://www.facer.io/w/02SyoSaxx9/showcase?prev=~2Fwatchface~2F02SyoSaxx9&watchModel=zenwatch3"></iframe>
     <canvas id="canvas"></canvas>
+  </div>
+
+  <div id="syncBanner">
+    <span id="syncText">0 SYNCS, THANK YOU BEAUTY LOVERS!</span>
   </div>
 
   <script>
@@ -157,79 +176,86 @@
     })();
   </script>
 
+  <!-- 🌟 Starburst Celebration Script -->
   <script>
-(function() {
-  const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
-  let particles = [];
+    (function() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
 
-  function randomColor() {
-    const colors = ['#ff004f', '#00f0ff', '#fffc00', '#00ff6a', '#ff00c8', '#ffffff'];
-    return colors[Math.floor(Math.random() * colors.length)];
-  }
+      function randomColor() {
+        const colors = ['#ff004f', '#00f0ff', '#fffc00', '#00ff6a', '#ff00c8', '#ffffff'];
+        return colors[Math.floor(Math.random() * colors.length)];
+      }
 
-  function createExplosion(x, y) {
-    const count = 200; // Double the original
-    for (let i = 0; i < count; i++) {
-      particles.push({
-        x: x,
-        y: y,
-        radius: Math.random() * 2 + 1,
-        color: randomColor(),
-        angle: Math.random() * 2 * Math.PI,
-        speed: Math.random() * 3 + 1,
-        alpha: 1
-      });
-    }
-  }
+      function createExplosion(x, y) {
+        const count = 200;
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x: x,
+            y: y,
+            radius: Math.random() * 2 + 1,
+            color: randomColor(),
+            angle: Math.random() * 2 * Math.PI,
+            speed: Math.random() * 3 + 1,
+            alpha: 1
+          });
+        }
+      }
 
-  function updateParticles() {
-    particles.forEach(p => {
-      p.x += Math.cos(p.angle) * p.speed;
-      p.y += Math.sin(p.angle) * p.speed;
-      p.alpha -= 0.01;
-    });
-    particles = particles.filter(p => p.alpha > 0);
-  }
+      function updateParticles() {
+        particles.forEach(p => {
+          p.x += Math.cos(p.angle) * p.speed;
+          p.y += Math.sin(p.angle) * p.speed;
+          p.alpha -= 0.01;
+        });
+        particles = particles.filter(p => p.alpha > 0);
+      }
 
-  function drawParticles() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
-      ctx.fillStyle = `rgba(${hexToRgb(p.color)},${p.alpha})`;
-      ctx.fill();
-    });
-  }
+      function drawParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
+          ctx.fillStyle = `rgba(${hexToRgb(p.color)},${p.alpha})`;
+          ctx.fill();
+        });
+      }
 
-  function hexToRgb(hex) {
-    const bigint = parseInt(hex.replace('#', ''), 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-    return `${r},${g},${b}`;
-  }
+      function hexToRgb(hex) {
+        const bigint = parseInt(hex.replace('#', ''), 16);
+        const r = (bigint >> 16) & 255;
+        const g = (bigint >> 8) & 255;
+        const b = bigint & 255;
+        return `${r},${g},${b}`;
+      }
 
-  function animate() {
-    updateParticles();
-    drawParticles();
-    requestAnimationFrame(animate);
-  }
+      function animate() {
+        updateParticles();
+        drawParticles();
+        requestAnimationFrame(animate);
+      }
 
-  function triggerDualExplosion() {
-    const x1 = Math.random() * canvas.width;
-    const y1 = Math.random() * canvas.height;
-    const x2 = canvas.width - x1;
-    const y2 = canvas.height - y1;
+      function triggerDualExplosion() {
+        const x1 = Math.random() * canvas.width;
+        const y1 = Math.random() * canvas.height;
+        const x2 = canvas.width - x1;
+        const y2 = canvas.height - y1;
 
-    createExplosion(x1, y1); // First burst
-    setTimeout(() => {
-      createExplosion(x2, y2); // Second burst, mirrored
-    }, 1000); // 1 second delay
-  }
+        createExplosion(x1, y1);
+        setTimeout(() => {
+          createExplosion(x2, y2);
+        }, 1000);
+      }
 
-  triggerDualExplosion(); // Initial burst
-  setInterval(triggerDualExplosion, 20000); // Repeat every 20 seconds
-  animate();
-})();
-</script>
+      triggerDualExplosion();
+      setInterval(triggerDualExplosion, 20000);
+      animate();
+    })();
+  </script>
+
+  <!-- 🎉 Sync Banner Script -->
+  <script>
+    (function() {
+      const banner = document.getElementById('syncBanner');
+      const text = document.getElement
