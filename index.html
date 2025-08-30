@@ -175,21 +175,21 @@
 
       // Sync Counter Animation (0 to 50000 in 15 seconds)
       const syncText = document.getElementById('syncText');
-      const startTime = performance.now();
+      const startTime = Date.now();
       const duration = 15000;
       const target = 50000;
 
-      function animateCounter(now) {
-        const elapsed = now - startTime;
+      function updateCounter() {
+        const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
         const count = Math.floor(progress * target);
         syncText.textContent = `${count.toLocaleString()} SYNCS, THANK YOU BEAUTY LOVERS!`;
         if (progress < 1) {
-          requestAnimationFrame(animateCounter);
+          requestAnimationFrame(updateCounter);
         }
       }
 
-      requestAnimationFrame(animateCounter);
+      requestAnimationFrame(updateCounter);
 
       // Explosion Stars Animation
       let particles = [];
@@ -238,5 +238,3 @@
         const bigint = parseInt(hex.replace('#', ''), 16);
         const r = (bigint >> 16) & 255;
         const g = (bigint >> 8) & 255;
-        const b = bigint & 255;
-        return `${r},${g},${b}`;
