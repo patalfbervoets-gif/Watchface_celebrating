@@ -13,11 +13,13 @@
       height: 100%;
       overflow: hidden;
     }
+
     #container {
       position: relative;
       width: 100%;
       height: 100%;
     }
+
     iframe {
       position: absolute;
       width: 105%;
@@ -30,9 +32,11 @@
       transform: translate(-50%, -50%) scale(1.95);
       visibility: hidden;
     }
+
     iframe.active {
       visibility: visible;
     }
+
     canvas {
       position: absolute;
       top: 0;
@@ -44,22 +48,25 @@
       background: transparent;
       display: block;
     }
+
     #introText {
       position: absolute;
       top: 50%;
       left: 20%;
       transform: translate(-50%, -50%);
+      background-color: transparent;
       color: black;
+      padding: 10px;
       font-family: sans-serif;
-      font-size: 3em;
+      font-size: 1em;          /* restored original size */
       font-weight: bold;
+      z-index: 100;
+      max-width: 400px;
       text-align: center;
       line-height: 1.6;
       text-shadow: 2px 2px 5px red;
-      padding: 10px;
-      max-width: 400px;
-      z-index: 100;
     }
+
     #logoImage {
       position: absolute;
       top: 50%;
@@ -69,21 +76,24 @@
       height: auto;
       z-index: 100;
     }
+
     #syncBanner {
       position: absolute;
       bottom: 20%;
       left: -100%;
       white-space: nowrap;
+      z-index: 200;
       font-family: sans-serif;
       font-size: 3em;
       font-weight: bold;
       color: white;
       text-shadow: 2px 2px 5px red;
       padding: 10px;
-      z-index: 200;
-      animation: bannerSlide 20s linear forwards;
+      background-color: transparent;
       pointer-events: none;
+      animation: bannerSlide 20s linear forwards;
     }
+
     @keyframes bannerSlide {
       from { left: -100%; }
       to   { left: 100%; }
@@ -119,16 +129,18 @@
   </div>
 
   <script>
-    // Setup canvas & mask
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
+    // Canvas + mask
+    const canvas = document.getElementById('canvas'),
+          ctx    = canvas.getContext('2d'),
+          img    = new Image();
     img.src = 'mask.png';
+
     function resizeCanvas() {
-      canvas.width = window.innerWidth;
+      canvas.width  = window.innerWidth;
       canvas.height = window.innerHeight;
       drawMask();
     }
+
     function drawMask() {
       if (!img.complete) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -138,11 +150,12 @@
       ctx.imageSmoothingEnabled = true;
       ctx.drawImage(img, x, y, w, h);
     }
+
     img.onload = resizeCanvas;
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    // Rotate watch faces
+    // Rotate watch iframes every 20s
     const iframes = document.querySelectorAll('iframe');
     let current = 0;
     setInterval(() => {
@@ -151,42 +164,47 @@
       iframes[current].classList.add('active');
     }, 20000);
 
-    // Hide intro
+    // Hide intro after 10s
     setTimeout(() => {
       document.getElementById('introText').style.display = 'none';
     }, 10000);
 
-    // Sync counter
-    const syncText = document.getElementById('syncText');
-    const startTime = Date.now(), duration = 15000, target = 50000;
+    // Counter to 50k in 10s
+    const syncText  = document.getElementById('syncText'),
+          startTime = Date.now(),
+          duration  = 10000,     // 10 seconds
+          target    = 50000;
+
     function updateCounter() {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const count = Math.floor(progress * target);
-      syncText.textContent =
-        `${count.toLocaleString()}${progress === 1 ? ' SYNCS, THANK YOU BEAUTY LOVERS!' : ''}`;
+      const elapsed  = Date.now() - startTime,
+            progress = Math.min(elapsed / duration, 1),
+            count    = Math.floor(progress * target);
+      syncText.textContent = `${count.toLocaleString()}${progress === 1 ? ' SYNCS, THANK YOU BEAUTY LOVERS!' : ''}`;
       if (progress < 1) requestAnimationFrame(updateCounter);
     }
     requestAnimationFrame(updateCounter);
 
-    // Exploding stars
+    // Exploding stars every 20s (2 bursts)
     let particles = [];
+
     function randomColor() {
       const colors = ['#ff004f','#00f0ff','#fffc00','#00ff6a','#ff00c8','#ffffff','#ff0000'];
       return colors[Math.floor(Math.random() * colors.length)];
     }
+
     function createExplosion(x, y) {
       for (let i = 0; i < 400; i++) {
         particles.push({
           x, y,
           radius: Math.random() * 2 + 1,
           color: randomColor(),
-          angle: Math.random() * Math.PI * 2,
+          angle: Math.random() * 2 * Math.PI,
           speed: Math.random() * 3 + 1,
           alpha: 1
         });
       }
     }
+
     function updateParticles() {
       particles.forEach(p => {
         p.x += Math.cos(p.angle) * p.speed;
@@ -195,32 +213,35 @@
       });
       particles = particles.filter(p => p.alpha > 0);
     }
+
     function drawParticles() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawMask();
       particles.forEach(p => {
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
         ctx.fillStyle = `rgba(${hexToRgb(p.color)},${p.alpha})`;
         ctx.fill();
       });
     }
+
     function hexToRgb(hex) {
-      const val = parseInt(hex.slice(1), 16);
-      const r = (val >> 16) & 255, g = (val >> 8) & 255, b = val & 255;
-      return `${r},${g},${b}`;
+      const val = parseInt(hex.replace('#',''), 16);
+      return `${(val >> 16) & 255},${(val >> 8) & 255},${val & 255}`;
     }
+
     function animate() {
       updateParticles();
       drawParticles();
       requestAnimationFrame(animate);
     }
+
     function triggerDualExplosion() {
       createExplosion(Math.random() * canvas.width, Math.random() * canvas.height);
       createExplosion(Math.random() * canvas.width, Math.random() * canvas.height);
       animate();
     }
-    // Fire two bursts every 20 seconds
+
     setInterval(triggerDualExplosion, 20000);
   </script>
 </body>
