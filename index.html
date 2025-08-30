@@ -78,7 +78,7 @@
 
     #syncBanner {
       position: absolute;
-      top: 10%;
+      bottom: 20%;
       left: -100%;
       white-space: nowrap;
       z-index: 200;
@@ -89,6 +89,12 @@
       padding: 10px;
       background-color: transparent;
       pointer-events: none;
+      animation: bannerSlide 20s linear forwards;
+    }
+
+    @keyframes bannerSlide {
+      from { left: -100%; }
+      to { left: 100%; }
     }
   </style>
 </head>
@@ -122,10 +128,6 @@
 
   <script>
     (function() {
-      const maskScaleMult = 1.45;
-      const maskOffsetX   = 0;
-      const maskOffsetY   = 0;
-
       const canvas = document.getElementById('canvas'),
             ctx    = canvas.getContext('2d'),
             img    = new Image();
@@ -142,15 +144,11 @@
         if (!img.complete) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        let scale = Math.min(
-          canvas.width  / img.width,
-          canvas.height / img.height
-        ) * maskScaleMult;
-
-        const w = img.width  * scale,
-              h = img.height * scale,
-              x = (canvas.width  - w) / 2 + maskOffsetX,
-              y = (canvas.height - h) / 2 + maskOffsetY;
+        const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 1.45;
+        const w = img.width * scale;
+        const h = img.height * scale;
+        const x = (canvas.width - w) / 2;
+        const y = (canvas.height - h) / 2;
 
         ctx.imageSmoothingEnabled = true;
         ctx.drawImage(img, x, y, w, h);
@@ -172,15 +170,10 @@
       setTimeout(() => {
         const introText = document.getElementById('introText');
         if (introText) introText.style.display = 'none';
+        triggerDualExplosion(); // trigger explosion after intro fades
       }, 10000);
-    })();
-  </script>
 
-  <!-- 🌟 Starburst Celebration Script -->
-  <script>
-    (function() {
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
+      // Explosion Stars Animation
       let particles = [];
 
       function randomColor() {
@@ -214,6 +207,7 @@
 
       function drawParticles() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawMask(); // redraw mask behind particles
         particles.forEach(p => {
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
@@ -248,14 +242,8 @@
         }, 1000);
       }
 
-      triggerDualExplosion();
-      setInterval(triggerDualExplosion, 20000);
-      animate();
+      animate(); // start animation loop
     })();
   </script>
-
-  <!-- 🎉 Sync Banner Script -->
-  <script>
-    (function() {
-      const banner = document.getElementById('syncBanner');
-      const text = document.getElement
+</body>
+</html>
