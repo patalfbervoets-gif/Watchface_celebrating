@@ -43,9 +43,10 @@
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: 9999;
+      z-index: 10;
       pointer-events: none;
       background: transparent;
+      display: block;
     }
 
     #introText {
@@ -53,16 +54,16 @@
       top: 50%;
       left: 20%;
       transform: translate(-50%, -50%);
+      background-color: transparent;
       color: black;
+      padding: 10px;
       font-family: sans-serif;
       font-size: 1em;
-      font-weight: bold;
+      z-index: 100;
+      max-width: 400px;
       text-align: center;
       line-height: 1.6;
-      text-shadow: 2px 2px 5px red;
-      padding: 10px;
-      max-width: 400px;
-      z-index: 100;
+      text-shadow: 1px 1px 3px red;
     }
 
     #logoImage {
@@ -75,18 +76,20 @@
       z-index: 100;
     }
 
+    /* SYNC BANNER */
     #syncBanner {
       position: absolute;
       bottom: 20%;
       left: -100%;
       white-space: nowrap;
+      z-index: 200;
       font-family: sans-serif;
       font-size: 3em;
       font-weight: bold;
       color: white;
-      text-shadow: 2px 2px 5px red;
+      text-shadow: 1px 1px 3px red;
       padding: 10px;
-      z-index: 200;
+      background: transparent;
       pointer-events: none;
       animation: bannerSlide 20s linear forwards;
     }
@@ -114,91 +117,153 @@
 
   <div id="container">
     <iframe class="active"
-      src="https://www.facer.io/w/zs6pDpzmRW/showcase?prev=~2Fwatchface~2Fzs6pDpzmRW&watchModel=fossilqmarshal">
-    </iframe>
+      src="https://www.facer.io/w/zs6pDpzmRW/showcase?prev=~2Fwatchface~2Fzs6pDpzmRW&watchModel=fossilqmarshal"></iframe>
     <iframe
-      src="https://www.facer.io/w/JsydeiEkmy/showcase?prev=~2Fwatchface~2FJsydeiEkmy&watchModel=gw5prodark">
-    </iframe>
+      src="https://www.facer.io/w/JsydeiEkmy/showcase?prev=~2Fwatchface~2FJsydeiEkmy&watchModel=gw5prodark"></iframe>
     <iframe
-      src="https://www.facer.io/w/S2Z9tfbuh8/showcase?prev=~2Fwatchface~2FS2Z9tfbuh8&watchModel=fossilqmarshal">
-    </iframe>
+      src="https://www.facer.io/w/S2Z9tfbuh8/showcase?prev=~2Fwatchface~2FS2Z9tfbuh8&watchModel=fossilqmarshal"></iframe>
     <iframe
-      src="https://www.facer.io/w/RsnQzFDYgg/showcase?prev=~2Fwatchface~2FRsnQzFDYgg&watchModel=fossilqmarshal">
-    </iframe>
+      src="https://www.facer.io/w/RsnQzFDYgg/showcase?prev=~2Fwatchface~2FRsnQzFDYgg&watchModel=fossilqmarshal"></iframe>
     <iframe
-      src="https://www.facer.io/w/02SyoSaxx9/showcase?prev=~2Fwatchface~2F02SyoSaxx9&watchModel=zenwatch3">
-    </iframe>
+      src="https://www.facer.io/w/02SyoSaxx9/showcase?prev=~2Fwatchface~2F02SyoSaxx9&watchModel=zenwatch3"></iframe>
     <canvas id="canvas"></canvas>
   </div>
 
+  <!-- Sync banner with running counter -->
   <div id="syncBanner">
     <span id="syncText">0</span>
   </div>
 
+  <!-- MASK + ROTATE + INTRO HIDE + COUNTER SCRIPT -->
   <script>
-    // Canvas & mask setup
-    const canvas  = document.getElementById('canvas');
-    const ctx     = canvas.getContext('2d');
-    const maskImg = new Image();
-    maskImg.src   = 'mask.png';
+    (function() {
+      // Mask & Canvas
+      const canvas = document.getElementById('canvas'),
+            ctx    = canvas.getContext('2d'),
+            img    = new Image();
+      img.src = 'mask.png';
 
-    function resizeCanvas() {
-      canvas.width  = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
+      function resizeCanvas() {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+        drawMask();
+      }
 
-    function drawMask() {
-      if (!maskImg.complete) return;
-      const scale = Math.min(canvas.width / maskImg.width, canvas.height / maskImg.height) * 1.45;
-      const w     = maskImg.width  * scale;
-      const h     = maskImg.height * scale;
-      const x     = (canvas.width  - w) / 2;
-      const y     = (canvas.height - h) / 2;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.imageSmoothingEnabled = true;
-      ctx.drawImage(maskImg, x, y, w, h);
-    }
+      function drawMask() {
+        if (!img.complete) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 1.45;
+        const w = img.width * scale, h = img.height * scale;
+        const x = (canvas.width - w) / 2, y = (canvas.height - h) / 2;
+        ctx.imageSmoothingEnabled = true;
+        ctx.drawImage(img, x, y, w, h);
+      }
 
-    maskImg.onload = () => {
+      img.onload = resizeCanvas;
+      window.addEventListener('resize', resizeCanvas);
       resizeCanvas();
-      drawMask();
-    };
 
-    window.addEventListener('resize', () => {
-      resizeCanvas();
-      drawMask();
-    });
+      // Rotate iframes every 20s
+      const iframes = document.querySelectorAll('iframe');
+      let current = 0;
+      setInterval(() => {
+        iframes[current].classList.remove('active');
+        current = (current + 1) % iframes.length;
+        iframes[current].classList.add('active');
+      }, 20000);
 
-    // Rotate watch faces every 20s
-    const iframes = document.querySelectorAll('iframe');
-    let current    = 0;
-    setInterval(() => {
-      iframes[current].classList.remove('active');
-      current = (current + 1) % iframes.length;
-      iframes[current].classList.add('active');
-    }, 20000);
+      // Hide introText after 10s
+      setTimeout(() => {
+        const intro = document.getElementById('introText');
+        if (intro) intro.style.display = 'none';
+      }, 10000);
 
-    // Hide intro after 10s
-    setTimeout(() => {
-      document.getElementById('introText').style.display = 'none';
-    }, 10000);
+      // Counter: 0→50000 in 10s
+      const syncText = document.getElementById('syncText');
+      const start    = Date.now();
+      const duration = 10000;
+      const target   = 50000;
 
-    // Counter to 50,000 in 10s
-    const syncText  = document.getElementById('syncText');
-    const startTime = Date.now();
-    const duration  = 10000;
-    const target    = 50000;
+      function updateCounter() {
+        const elapsed = Date.now() - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const count    = Math.floor(progress * target);
+        syncText.textContent =
+          `${count.toLocaleString()}${progress === 1 ? ' SYNCS, THANK YOU BEAUTY LOVERS!' : ''}`;
+        if (progress < 1) {
+          requestAnimationFrame(updateCounter);
+        }
+      }
 
-    function updateCounter() {
-      const elapsed  = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const count    = Math.floor(progress * target);
-      syncText.textContent =
-        `${count.toLocaleString()}${progress === 1 ? ' SYNCS, THANK YOU BEAUTY LOVERS!' : ''}`;
-      if (progress < 1) requestAnimationFrame(updateCounter);
-    }
+      requestAnimationFrame(updateCounter);
+    })();
+  </script>
 
-    requestAnimationFrame(updateCounter);
+  <!-- 🌟 Starburst Celebration Script (unchanged) -->
+  <script>
+    (function() {
+      const canvas = document.getElementById('canvas');
+      const ctx    = canvas.getContext('2d');
+      let particles = [];
+
+      function randomColor() {
+        const colors = ['#ff004f','#00f0ff','#fffc00','#00ff6a','#ff00c8','#ffffff'];
+        return colors[Math.floor(Math.random() * colors.length)];
+      }
+
+      function createExplosion(x, y) {
+        const count = 100;
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x, y,
+            radius: Math.random() * 2 + 1,
+            color: randomColor(),
+            angle: Math.random() * 2 * Math.PI,
+            speed: Math.random() * 3 + 1,
+            alpha: 1
+          });
+        }
+      }
+
+      function updateParticles() {
+        particles.forEach(p => {
+          p.x += Math.cos(p.angle) * p.speed;
+          p.y += Math.sin(p.angle) * p.speed;
+          p.alpha -= 0.01;
+        });
+        particles = particles.filter(p => p.alpha > 0);
+      }
+
+      function drawParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
+          ctx.fillStyle = `rgba(${hexToRgb(p.color)},${p.alpha})`;
+          ctx.fill();
+        });
+      }
+
+      function hexToRgb(hex) {
+        const bigint = parseInt(hex.replace('#',''), 16);
+        return [(bigint>>16)&255, (bigint>>8)&255, bigint&255].join(',');
+      }
+
+      function animate() {
+        updateParticles();
+        drawParticles();
+        requestAnimationFrame(animate);
+      }
+
+      function triggerExplosion() {
+        createExplosion(Math.random() * canvas.width, Math.random() * canvas.height);
+      }
+
+      // initial & repeat every 20s
+      triggerExplosion();
+      setInterval(triggerExplosion, 20000);
+      animate();
+    })();
   </script>
 </body>
 </html>
