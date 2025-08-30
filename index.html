@@ -58,7 +58,7 @@
       color: black;
       padding: 10px;
       font-family: sans-serif;
-      font-size: 1em;          /* restored original size */
+      font-size: 1em;       /* restored original size */
       font-weight: bold;
       z-index: 100;
       max-width: 400px;
@@ -116,11 +116,21 @@
   <img id="logoImage" src="0001.png" alt="Logo">
 
   <div id="container">
-    <iframe class="active" src="https://www.facer.io/w/zs6pDpzmRW/showcase?prev=~2Fwatchface~2Fzs6pDpzmRW&watchModel=fossilqmarshal"></iframe>
-    <iframe src="https://www.facer.io/w/JsydeiEkmy/showcase?prev=~2Fwatchface~2FJsydeiEkmy&watchModel=gw5prodark"></iframe>
-    <iframe src="https://www.facer.io/w/S2Z9tfbuh8/showcase?prev=~2Fwatchface~2FS2Z9tfbuh8&watchModel=fossilqmarshal"></iframe>
-    <iframe src="https://www.facer.io/w/RsnQzFDYgg/showcase?prev=~2Fwatchface~2FRsnQzFDYgg&watchModel=fossilqmarshal"></iframe>
-    <iframe src="https://www.facer.io/w/02SyoSaxx9/showcase?prev=~2Fwatchface~2F02SyoSaxx9&watchModel=zenwatch3"></iframe>
+    <iframe class="active"
+      src="https://www.facer.io/w/zs6pDpzmRW/showcase?prev=~2Fwatchface~2Fzs6pDpzmRW&watchModel=fossilqmarshal">
+    </iframe>
+    <iframe
+      src="https://www.facer.io/w/JsydeiEkmy/showcase?prev=~2Fwatchface~2FJsydeiEkmy&watchModel=gw5prodark">
+    </iframe>
+    <iframe
+      src="https://www.facer.io/w/S2Z9tfbuh8/showcase?prev=~2Fwatchface~2FS2Z9tfbuh8&watchModel=fossilqmarshal">
+    </iframe>
+    <iframe
+      src="https://www.facer.io/w/RsnQzFDYgg/showcase?prev=~2Fwatchface~2FRsnQzFDYgg&watchModel=fossilqmarshal">
+    </iframe>
+    <iframe
+      src="https://www.facer.io/w/02SyoSaxx9/showcase?prev=~2Fwatchface~2F02SyoSaxx9&watchModel=zenwatch3">
+    </iframe>
     <canvas id="canvas"></canvas>
   </div>
 
@@ -130,9 +140,9 @@
 
   <script>
     // Canvas + mask
-    const canvas = document.getElementById('canvas'),
-          ctx    = canvas.getContext('2d'),
-          img    = new Image();
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
     img.src = 'mask.png';
 
     function resizeCanvas() {
@@ -145,8 +155,10 @@
       if (!img.complete) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 1.45;
-      const w = img.width * scale, h = img.height * scale;
-      const x = (canvas.width - w) / 2, y = (canvas.height - h) / 2;
+      const w = img.width * scale;
+      const h = img.height * scale;
+      const x = (canvas.width - w) / 2;
+      const y = (canvas.height - h) / 2;
       ctx.imageSmoothingEnabled = true;
       ctx.drawImage(img, x, y, w, h);
     }
@@ -155,7 +167,7 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    // Rotate watch iframes every 20s
+    // Rotate watch faces every 20s
     const iframes = document.querySelectorAll('iframe');
     let current = 0;
     setInterval(() => {
@@ -164,27 +176,31 @@
       iframes[current].classList.add('active');
     }, 20000);
 
-    // Hide intro after 10s
+    // Hide intro and trigger first explosion at 10s
     setTimeout(() => {
       document.getElementById('introText').style.display = 'none';
+      triggerDualExplosion();
     }, 10000);
 
-    // Counter to 50k in 10s
-    const syncText  = document.getElementById('syncText'),
-          startTime = Date.now(),
-          duration  = 10000,     // 10 seconds
-          target    = 50000;
+    // Counter to 50,000 in 10s
+    const syncText  = document.getElementById('syncText');
+    const startTime = Date.now();
+    const duration  = 10000;  // 10 seconds
+    const target    = 50000;
 
     function updateCounter() {
-      const elapsed  = Date.now() - startTime,
-            progress = Math.min(elapsed / duration, 1),
-            count    = Math.floor(progress * target);
-      syncText.textContent = `${count.toLocaleString()}${progress === 1 ? ' SYNCS, THANK YOU BEAUTY LOVERS!' : ''}`;
-      if (progress < 1) requestAnimationFrame(updateCounter);
+      const elapsed  = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const count    = Math.floor(progress * target);
+      syncText.textContent =
+        `${count.toLocaleString()}${progress === 1 ? ' SYNCS, THANK YOU BEAUTY LOVERS!' : ''}`;
+      if (progress < 1) {
+        requestAnimationFrame(updateCounter);
+      }
     }
     requestAnimationFrame(updateCounter);
 
-    // Exploding stars every 20s (2 bursts)
+    // Exploding stars
     let particles = [];
 
     function randomColor() {
@@ -195,10 +211,11 @@
     function createExplosion(x, y) {
       for (let i = 0; i < 400; i++) {
         particles.push({
-          x, y,
+          x,
+          y,
           radius: Math.random() * 2 + 1,
           color: randomColor(),
-          angle: Math.random() * 2 * Math.PI,
+          angle: Math.random() * Math.PI * 2,
           speed: Math.random() * 3 + 1,
           alpha: 1
         });
@@ -219,7 +236,7 @@
       drawMask();
       particles.forEach(p => {
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${hexToRgb(p.color)},${p.alpha})`;
         ctx.fill();
       });
@@ -227,13 +244,18 @@
 
     function hexToRgb(hex) {
       const val = parseInt(hex.replace('#',''), 16);
-      return `${(val >> 16) & 255},${(val >> 8) & 255},${val & 255}`;
+      const r = (val >> 16) & 255;
+      const g = (val >> 8) & 255;
+      const b = val & 255;
+      return `${r},${g},${b}`;
     }
 
     function animate() {
       updateParticles();
       drawParticles();
-      requestAnimationFrame(animate);
+      if (particles.length > 0) {
+        requestAnimationFrame(animate);
+      }
     }
 
     function triggerDualExplosion() {
@@ -242,6 +264,7 @@
       animate();
     }
 
+    // Repeat explosions every 20s
     setInterval(triggerDualExplosion, 20000);
   </script>
 </body>
