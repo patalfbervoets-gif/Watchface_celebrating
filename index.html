@@ -54,16 +54,15 @@
       top: 50%;
       left: 20%;
       transform: translate(-50%, -50%);
-      background-color: transparent;
       color: black;
-      padding: 10px;
+      text-shadow: 1px 1px 3px red;
       font-family: sans-serif;
       font-size: 1em;
-      z-index: 100;
-      max-width: 400px;
-      text-align: center;
       line-height: 1.6;
-      text-shadow: 1px 1px 3px red;
+      padding: 10px;
+      max-width: 400px;
+      z-index: 100;
+      text-align: center;
     }
 
     #logoImage {
@@ -76,7 +75,7 @@
       z-index: 100;
     }
 
-    /* SYNC BANNER */
+    /* Sync banner + counter */
     #syncBanner {
       position: absolute;
       bottom: 20%;
@@ -88,8 +87,6 @@
       font-weight: bold;
       color: white;
       text-shadow: 1px 1px 3px red;
-      padding: 10px;
-      background: transparent;
       pointer-events: none;
       animation: bannerSlide 20s linear forwards;
     }
@@ -129,141 +126,144 @@
     <canvas id="canvas"></canvas>
   </div>
 
-  <!-- Sync banner with running counter -->
   <div id="syncBanner">
     <span id="syncText">0</span>
   </div>
 
-  <!-- MASK + ROTATE + INTRO HIDE + COUNTER SCRIPT -->
   <script>
-    (function() {
-      // Mask & Canvas
-      const canvas = document.getElementById('canvas'),
-            ctx    = canvas.getContext('2d'),
-            img    = new Image();
-      img.src = 'mask.png';
+  (function() {
+    // Canvas & Mask setup
+    const canvas = document.getElementById('canvas'),
+          ctx    = canvas.getContext('2d'),
+          img    = new Image();
+    img.src = 'mask.png';
 
-      function resizeCanvas() {
-        canvas.width  = window.innerWidth;
-        canvas.height = window.innerHeight;
-        drawMask();
+    function resizeCanvas() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function drawMask() {
+      const scale = Math.min(
+        canvas.width  / img.width,
+        canvas.height / img.height
+      ) * 1.45;
+      const w = img.width * scale,
+            h = img.height * scale,
+            x = (canvas.width - w) / 2,
+            y = (canvas.height - h) / 2;
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(img, x, y, w, h);
+    }
+
+    // Particle system
+    let particles = [];
+    const PARTICLE_COUNT    = 150;
+    const EXPLOSION_FREQ    = 5000;   // every 5 seconds
+    const FADE_RATE         = 0.005;  // slower fade → ~200 frames
+
+    function randomColor() {
+      const palette = ['#ff004f', '#00f0ff', '#fffc00', '#00ff6a', '#ff00c8', '#ffffff'];
+      return palette[Math.floor(Math.random() * palette.length)];
+    }
+
+    function hexToRgb(hex) {
+      const bigint = parseInt(hex.replace('#',''), 16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8)  & 255;
+      const b = bigint & 255;
+      return `${r},${g},${b}`;
+    }
+
+    function createExplosion(x, y) {
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push({
+          x: x,
+          y: y,
+          radius: Math.random() * 2 + 1,
+          color: randomColor(),
+          angle: Math.random() * 2 * Math.PI,
+          speed: Math.random() * 3 + 1,
+          alpha: 1
+        });
       }
+    }
 
-      function drawMask() {
-        if (!img.complete) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 1.45;
-        const w = img.width * scale, h = img.height * scale;
-        const x = (canvas.width - w) / 2, y = (canvas.height - h) / 2;
-        ctx.imageSmoothingEnabled = true;
-        ctx.drawImage(img, x, y, w, h);
-      }
+    function updateParticles() {
+      particles.forEach(p => {
+        p.x += Math.cos(p.angle) * p.speed;
+        p.y += Math.sin(p.angle) * p.speed;
+        p.alpha -= FADE_RATE;
+      });
+      // Remove faded-out particles
+      particles = particles.filter(p => p.alpha > 0);
+    }
 
-      img.onload = resizeCanvas;
-      window.addEventListener('resize', resizeCanvas);
+    function drawParticles() {
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
+        ctx.fillStyle = `rgba(${hexToRgb(p.color)},${p.alpha})`;
+        ctx.fill();
+      });
+    }
+
+    function triggerExplosion() {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      createExplosion(x, y);
+    }
+
+    // Main animation loop (mask + particles)
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawMask();
+      updateParticles();
+      drawParticles();
+      requestAnimationFrame(animate);
+    }
+
+    // Wait for mask to load, then start everything
+    img.onload = () => {
       resizeCanvas();
-
-      // Rotate iframes every 20s
-      const iframes = document.querySelectorAll('iframe');
-      let current = 0;
-      setInterval(() => {
-        iframes[current].classList.remove('active');
-        current = (current + 1) % iframes.length;
-        iframes[current].classList.add('active');
-      }, 20000);
-
-      // Hide introText after 10s
-      setTimeout(() => {
-        const intro = document.getElementById('introText');
-        if (intro) intro.style.display = 'none';
-      }, 10000);
-
-      // Counter: 0→50000 in 10s
-      const syncText = document.getElementById('syncText');
-      const start    = Date.now();
-      const duration = 10000;
-      const target   = 50000;
-
-      function updateCounter() {
-        const elapsed = Date.now() - start;
-        const progress = Math.min(elapsed / duration, 1);
-        const count    = Math.floor(progress * target);
-        syncText.textContent =
-          `${count.toLocaleString()}${progress === 1 ? ' SYNCS, THANK YOU BEAUTY LOVERS!' : ''}`;
-        if (progress < 1) {
-          requestAnimationFrame(updateCounter);
-        }
-      }
-
-      requestAnimationFrame(updateCounter);
-    })();
-  </script>
-
-  <!-- 🌟 Starburst Celebration Script (unchanged) -->
-  <script>
-    (function() {
-      const canvas = document.getElementById('canvas');
-      const ctx    = canvas.getContext('2d');
-      let particles = [];
-
-      function randomColor() {
-        const colors = ['#ff004f','#00f0ff','#fffc00','#00ff6a','#ff00c8','#ffffff'];
-        return colors[Math.floor(Math.random() * colors.length)];
-      }
-
-      function createExplosion(x, y) {
-        const count = 100;
-        for (let i = 0; i < count; i++) {
-          particles.push({
-            x, y,
-            radius: Math.random() * 2 + 1,
-            color: randomColor(),
-            angle: Math.random() * 2 * Math.PI,
-            speed: Math.random() * 3 + 1,
-            alpha: 1
-          });
-        }
-      }
-
-      function updateParticles() {
-        particles.forEach(p => {
-          p.x += Math.cos(p.angle) * p.speed;
-          p.y += Math.sin(p.angle) * p.speed;
-          p.alpha -= 0.01;
-        });
-        particles = particles.filter(p => p.alpha > 0);
-      }
-
-      function drawParticles() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach(p => {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
-          ctx.fillStyle = `rgba(${hexToRgb(p.color)},${p.alpha})`;
-          ctx.fill();
-        });
-      }
-
-      function hexToRgb(hex) {
-        const bigint = parseInt(hex.replace('#',''), 16);
-        return [(bigint>>16)&255, (bigint>>8)&255, bigint&255].join(',');
-      }
-
-      function animate() {
-        updateParticles();
-        drawParticles();
-        requestAnimationFrame(animate);
-      }
-
-      function triggerExplosion() {
-        createExplosion(Math.random() * canvas.width, Math.random() * canvas.height);
-      }
-
-      // initial & repeat every 20s
       triggerExplosion();
-      setInterval(triggerExplosion, 20000);
-      animate();
-    })();
+      setInterval(triggerExplosion, EXPLOSION_FREQ);
+      requestAnimationFrame(animate);
+    };
+
+    // Rotate watch‐face iframes every 20s
+    const iframes = document.querySelectorAll('iframe');
+    let current = 0;
+    setInterval(() => {
+      iframes[current].classList.remove('active');
+      current = (current + 1) % iframes.length;
+      iframes[current].classList.add('active');
+    }, 20000);
+
+    // Hide the intro text after 10s
+    setTimeout(() => {
+      const intro = document.getElementById('introText');
+      if (intro) intro.style.display = 'none';
+    }, 10000);
+
+    // Running counter from 0 → 50 000 in 10s
+    const syncText   = document.getElementById('syncText'),
+          startTime  = Date.now(),
+          duration   = 10000,
+          target     = 50000;
+
+    function updateCounter() {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const value = Math.floor(progress * target);
+      syncText.textContent =
+        `${value.toLocaleString()}${progress === 1 ? ' SYNCS, THANK YOU BEAUTY LOVERS!' : ''}`;
+      if (progress < 1) requestAnimationFrame(updateCounter);
+    }
+    requestAnimationFrame(updateCounter);
+
+  })();
   </script>
 </body>
 </html>
